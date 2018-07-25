@@ -1,72 +1,131 @@
 import React from 'react';
-import { Text, View, FlatList } from 'react-native';
+import { Text, Image, View, FlatList, TouchableOpacity } from 'react-native';
 import { ListItem, SearchBar } from 'react-native-elements';
 import { createStackNavigator } from 'react-navigation';
-import { getOptions } from '../lib/Fetch';
+import { getOptions, getArticles } from '../lib/Fetch';
+import ArticleCard from '../components/ArticleCard';
+import Article from './Article';
 
 class Browse extends React.Component {
 
-  openOptions(type){
+  openOption(type){
     this.props.navigation.navigate('Options', {type: type});
   }
 
   render() {
     const searchOptions = [
-      {"name": "Time"},
-      {"name": "Category"},
-      {"name": "Author"},
-      {"name": "Scope"}
+      "Time",
+      "Categories",
+      "Author",
+      "Scope"
     ];
 
     return (
-      <View>
-        <FlatList
-          data={searchOptions}
-          showsVerticalScrollIndicator={false}
-          renderItem={({item}) =>
-            <ListItem
-              title={item.name}
-              onPress={() => this.openOptions(item.name)}
-            />
-          }
-          keyExtractor={item => item.name}
-        />
-      </View>
+      <FlatList
+        data={searchOptions}
+        showsVerticalScrollIndicator={false}
+        renderItem={({item}) =>
+          <ListItem
+            title={item}
+            onPress={() => this.openOption(item)}
+          />
+        }
+        keyExtractor={item => item}
+      />
     );
   }
 };
 
 class Options extends React.Component {
+  static navigationOptions = ({ navigation }) => ({
+    title: `${navigation.state.params.type}`.toUpperCase(),
+  });
+
   constructor(props) {
     super(props);
+    this.state = { options: [] };
     this.fetchOptions = this.fetchOptions.bind(this);
-    this.state = { options: "" };
   }
 
   componentDidMount() {
     this.fetchOptions();
   }
 
+  openResult(choice) {
+    this.props.navigation.navigate('Results', {type: this.getType(), filter: choice});
+  }
+
+  getType() {
+    var type = this.props.navigation.state.params.type.toLowerCase();
+    if (type == "author" || type == "scope"){
+      type += "s";
+    }
+    return type;
+  }
+
   fetchOptions() {
-    getOptions(this.props.type)
-      .then((options) => this.setState({ options }));
+    getOptions(this.getType())
+      .then((options) => this.setState({ options: options }));
   }
 
   render(){
-    const type = this.props.navigation.state.params.type
     return (
-      <Text>{type}</Text>
+      <FlatList
+        data={this.state.options}
+        showsVerticalScrollIndicator={false}
+        renderItem={({item}) =>
+          <ListItem
+            title={item}
+            onPress={() => this.openResult(item)}
+          />
+        }
+        keyExtractor={item => item}
+      />
     );
   }
 }
 
 class Results extends React.Component {
+  static navigationOptions = ({ navigation }) => ({
+    title: `${navigation.state.params.filter}`.toUpperCase(),
+  });
+
+  constructor(props) {
+    super(props);
+    this.state = { articles: [] };
+    this.fetchArticles = this.fetchArticles.bind(this);
+  }
+
+  componentDidMount() {
+    this.fetchArticles(this.props.navigation.state.params.type, this.getFilter());
+  }
+
+  getFilter() {
+    if(this.props.navigation.state.params.type == "authors"){
+      return this.props.navigation.state.params.filter.split(' ').join('_').toLowerCase();
+    }else{
+      return this.props.navigation.state.params.filter.toLowerCase();
+    }
+  }
+
+  openArticle(item) {
+    this.props.navigation.navigate('Article', {article: item});
+  }
+
+  fetchArticles() {
+    getArticles(this.props.navigation.state.params.type, this.getFilter())
+      .then((articles) => this.setState({ articles: articles }));
+  }
+
   render(){
-    const {
-      type
-    } = this.props;
     return (
-      <Text>Options</Text>
+      <FlatList
+        data={this.state.articles}
+        renderItem={({ item }) => <TouchableOpacity onPress={() => this.openArticle(item)}>
+                                    <ArticleCard article={item} />
+                                  </TouchableOpacity>}
+        keyExtractor={item => item.id}
+      />
     );
   }
 }
@@ -75,7 +134,7 @@ const BrowseScreen = createStackNavigator({
   Browse: {
     screen: Browse,
     navigationOptions: {
-      title: "Browse"
+      title: "BROWSE"
     }
   },
   Options: {
@@ -83,12 +142,16 @@ const BrowseScreen = createStackNavigator({
   },
   Results: {
     screen: Results
+  },
+  Article: {
+    screen: Article
   }
 });
 
 BrowseScreen.navigationOptions = {
-  title: "Browse",
-  tabBarColor: "blue"
+  title: "BROWSE",
+  tabBarColor: "rgb(150, 50, 150)",
+  tabBarIcon: <Image source={{uri: "http://icons.iconarchive.com/icons/icons8/ios7/256/Very-Basic-Opened-Folder-icon.png"}} style={{width:25, height: 25}}/>
 }
 
 export default BrowseScreen;

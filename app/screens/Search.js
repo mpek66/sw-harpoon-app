@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, FlatList } from 'react-native';
+import { Text, Image, View, FlatList } from 'react-native';
 import { ListItem, SearchBar } from 'react-native-elements';
 import { createStackNavigator } from 'react-navigation';
 
@@ -36,14 +36,15 @@ const SearchScreen = createStackNavigator({
   Search: {
     screen: Search,
     navigationOptions: {
-      title: "Search"
+      title: "SEARCH"
     }
   }
 });
 
 SearchScreen.navigationOptions = {
-  title: "Search",
-  tabBarColor: "yellow"
+  title: "SEARCH",
+  tabBarColor: "rgb(150, 50, 150)",
+  tabBarIcon: <Image source={{uri: "https://cdn2.iconfinder.com/data/icons/lightly-icons/30/search-480.png"}} style={{width:25, height: 25}}/>
 }
 
 export default SearchScreen;

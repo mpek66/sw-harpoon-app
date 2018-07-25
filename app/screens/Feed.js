@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, TouchableOpacity } from 'react-native';
+import { FlatList, Image, TouchableOpacity } from 'react-native';
 import { createStackNavigator } from 'react-navigation';
 
 import { getNews } from '../lib/Fetch';
@@ -56,7 +56,7 @@ const FeedScreen = createStackNavigator(
     Feed: {
       screen: Feed,
       navigationOptions: {
-        title: "Feed"
+        title: "NEWS FEED"
       }
     },
     Article: {
@@ -66,7 +66,9 @@ const FeedScreen = createStackNavigator(
 );
 
 FeedScreen.navigationOptions = {
-  tabBarColor: "red",
+  title: "FEED",
+  tabBarColor: "rgb(150, 50, 150)",
+  tabBarIcon: <Image source={{uri: "https://cdn4.iconfinder.com/data/icons/social-productivity-line-art-5/128/news-newspaper1-512.png"}} style={{width:25, height: 25}}/>
 }
 
 export default FeedScreen;
