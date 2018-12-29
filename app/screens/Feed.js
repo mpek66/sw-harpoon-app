@@ -9,27 +9,21 @@ import Article from './Article';
 class Feed extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { articles: [], refreshing: true };
-    this.fetchNews = this.fetchNews.bind(this);
+    this.state = {
+      refreshing: false
+    };
+    this.endRefresh  = this.endRefresh.bind(this);
   }
 
-  componentDidMount() {
-    this.fetchNews();
-   }
-
-  fetchNews() {
-    getNews()
-      .then((articles) => this.setState({ articles, refreshing: false }))
-      .catch(() => this.setState({ refreshing: false }));
+  handleRefresh(){
+    this.setState({refreshing: true});
+    this.props.screenProps.reload(this.endRefresh);
   }
 
-  handleRefresh() {
-    this.setState(
-      {
-        refreshing: true
-    },
-      () => this.fetchNews()
-    );
+  endRefresh(){
+    this.setState({
+      refreshing: false
+    });
   }
 
   openArticle(item){
@@ -39,11 +33,11 @@ class Feed extends React.Component {
   render() {
     return (
       <FlatList
-        data={this.state.articles}
+        data={this.props.screenProps.app.articles}
         renderItem={({ item }) => <TouchableOpacity onPress={() => this.openArticle(item)}>
                                     <ArticleCard article={item} />
                                   </TouchableOpacity>}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
         refreshing={this.state.refreshing}
         onRefresh={this.handleRefresh.bind(this)}
       />
@@ -62,7 +56,7 @@ const FeedScreen = createStackNavigator(
     Article: {
       screen: Article
     }
-  },
+  }
 );
 
 FeedScreen.navigationOptions = {

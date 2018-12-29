@@ -15,7 +15,7 @@ class Browse extends React.Component {
   render() {
     const searchOptions = [
       "Time",
-      "Categories",
+      "Category",
       "Author",
       "Scope"
     ];
@@ -30,7 +30,7 @@ class Browse extends React.Component {
             onPress={() => this.openOption(item)}
           />
         }
-        keyExtractor={item => item}
+        keyExtractor={item => item.toString()}
       />
     );
   }
@@ -43,12 +43,6 @@ class Options extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { options: [] };
-    this.fetchOptions = this.fetchOptions.bind(this);
-  }
-
-  componentDidMount() {
-    this.fetchOptions();
   }
 
   openResult(choice) {
@@ -56,22 +50,13 @@ class Options extends React.Component {
   }
 
   getType() {
-    var type = this.props.navigation.state.params.type.toLowerCase();
-    if (type == "author" || type == "scope"){
-      type += "s";
-    }
-    return type;
-  }
-
-  fetchOptions() {
-    getOptions(this.getType())
-      .then((options) => this.setState({ options: options }));
+    return this.props.navigation.state.params.type.toLowerCase();
   }
 
   render(){
     return (
       <FlatList
-        data={this.state.options}
+        data={this.props.screenProps.app.options[this.getType()]}
         showsVerticalScrollIndicator={false}
         renderItem={({item}) =>
           <ListItem
@@ -79,7 +64,7 @@ class Options extends React.Component {
             onPress={() => this.openResult(item)}
           />
         }
-        keyExtractor={item => item}
+        keyExtractor={item => item.toString()}
       />
     );
   }
@@ -92,24 +77,36 @@ class Results extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { articles: [] };
+    this.state = {
+      articles: [],
+      refreshing: false
+    };
     this.fetchArticles = this.fetchArticles.bind(this);
+    this.endRefresh = this.endRefresh.bind(this);
   }
 
   componentDidMount() {
-    this.fetchArticles(this.props.navigation.state.params.type, this.getFilter());
+    this.fetchArticles();
   }
 
   getFilter() {
-    if(this.props.navigation.state.params.type == "authors"){
-      return this.props.navigation.state.params.filter.split(' ').join('_').toLowerCase();
-    }else{
-      return this.props.navigation.state.params.filter.toLowerCase();
-    }
+    return this.props.navigation.state.params.filter.toLowerCase();
   }
 
   openArticle(item) {
     this.props.navigation.navigate('Article', {article: item});
+  }
+
+  handleRefresh(){
+    this.setState({refreshing: true});
+    this.props.screenProps.reload(this.endRefresh);
+  }
+
+  endRefresh(){
+    this.fetchArticles();
+    this.setState({
+      refreshing: false
+    });
   }
 
   fetchArticles() {
@@ -124,7 +121,9 @@ class Results extends React.Component {
         renderItem={({ item }) => <TouchableOpacity onPress={() => this.openArticle(item)}>
                                     <ArticleCard article={item} />
                                   </TouchableOpacity>}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
+        refreshing={this.state.refreshing}
+        onRefresh={this.handleRefresh.bind(this)}
       />
     );
   }
